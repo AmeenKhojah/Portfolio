@@ -97,7 +97,6 @@ html, body {
     align-items: center;
     padding-top: 20px;
     transform: translateX(100%);
-    z-index: 999; /* Ensure nav links are above other content */
   }
   .nav-links.active {
     transform: translateX(0%);
@@ -140,14 +139,13 @@ html, body {
   height: 600px;
   background-color: #000;
   transform: translate(400px, -250px);
-  z-index: 2; /* Ensure it's below the hero text */
 }
 
 .hero-absolute-text {
   position: absolute;
   top: 300px;
   left: 80px;
-  z-index: 3; /* Ensure hero text is above the robot */
+  z-index: 9999;
   color: #fff;
   text-align: left;
 }
@@ -465,7 +463,6 @@ html, body {
   position: relative;
   overflow: visible;
   cursor: grab;
-  z-index: 1; /* Ensure carousel is above other content */
 }
 .carousel-wrapper:active {
   cursor: grabbing;
@@ -501,7 +498,6 @@ html, body {
   color: #000;
   cursor: grab;
   overflow-wrap: break-word; /* keep text inside card */
-  z-index: 2; /* Ensure cards are above the carousel background */
 }
 .carousel-card:active {
   cursor: grabbing;
@@ -539,10 +535,11 @@ html, body {
   .carousel-card {
     top: 50%;
     left: 50% !important;
-    transform: translate(-50%, -50%);
     width: 110px;       /* <--- Tweak width to shrink/grow the card */
     height: 130px;      /* <--- Tweak height to shrink/grow the card */
     padding: 0.5rem;    /* smaller padding so text fits inside */
+    /* Removed transform from CSS to prevent conflicts with JS */
+    /* transform: translate(-50%, -50%); */
   }
   .carousel-card img.project-img {
     max-height: 40px;   /* <--- Tweak to allow bigger/smaller images */
@@ -583,30 +580,6 @@ html, body {
 }
 .below-contact-icons a img:hover {
   filter: brightness(0.7);
-}
-
-/* ======================================
-   MESSAGE OVERLAY
-====================================== */
-.message-overlay {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 25px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-  z-index: 2000;
-  font-size: 1rem;
-}
-
-.message-overlay.show {
-  opacity: 1;
-  visibility: visible;
 }
 
 /* ======================================
