@@ -1,3 +1,4 @@
+<!-- ========== style.css ========== -->
 /* ======================================
    RESET & BASE STYLES
 ====================================== */
@@ -179,7 +180,7 @@ html, body {
   position: relative;
   overflow: hidden;
   vertical-align: middle;
-    margin-top: 50px;
+  margin-top: 50px;
 }
 .cta-button:hover {
   background: linear-gradient(135deg, #B030B0, #E060C0);
@@ -224,6 +225,54 @@ html, body {
 }
 .hero-social-links a img:hover {
   filter: brightness(0.7);
+}
+
+/* Make sure hero content doesn't get clipped on mobile */
+@media (max-width: 992px) {
+  .hero-section {
+    min-height: auto;
+  }
+  #canvas3d {
+    width: 100%;
+    height: 400px;
+    transform: translate(0, 0);
+  }
+  .hero-absolute-text {
+    position: relative;
+    margin: 20px;
+    text-align: center;
+    top: 0;
+    left: 0;
+  }
+  .hero-title {
+    font-size: 1.8rem;
+  }
+  .hero-desc {
+    font-size: 0.95rem;
+  }
+  .hero-socials-container {
+    position: relative;
+    top: 20px;
+    left: 0;
+    transform: none;
+    margin: 0 auto;
+  }
+}
+
+/* For smaller screens: center items better */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-title {
+    font-size: 1.2rem;
+  }
+  .hero-desc {
+    font-size: 0.85rem;
+  }
 }
 
 /* ======================================
@@ -423,7 +472,7 @@ html, body {
 .carousel-card {
   position: absolute;
   top: 50%;
-  left: 33%;
+  left: 33%; /* Keep for desktop centering */
   width: 200px;
   height: 220px;
   background: #f9f9f9;
@@ -463,6 +512,24 @@ html, body {
   color: #444;
 }
 
+/* Make sure carousel appears nicely on mobile */
+@media (max-width: 576px) {
+  .carousel-wrapper {
+    perspective: 800px; /* a bit closer so we can see the other cards better */
+    height: 220px;
+  }
+  .carousel-card {
+    top: 50%;
+    left: 50% !important; /* center on mobile */
+    transform: translate(-50%, -50%); /* will apply rotateY separately in JS */
+    width: 140px;
+    height: 160px;
+  }
+  .carousel-card img.project-img {
+    max-height: 60px;
+  }
+}
+
 /* ======================================
    FOOTER
 ====================================== */
@@ -496,57 +563,12 @@ html, body {
    RESPONSIVE
 ====================================== */
 @media (max-width: 992px) {
-  .hero-section {
-    min-height: auto;
-  }
-  #canvas3d {
-    width: 100%;
-    height: 400px;
-    transform: translate(2px, 0);
-  }
-  .hero-absolute-text {
-    position: static;
-    margin: 20px;
-    text-align: center; /* text becomes centered on smaller screens */
-  }
-  .hero-title {
-    font-size: 1.8rem;
-  }
-  .hero-desc {
-    font-size: 0.95rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .nav-links {
-    position: fixed;
-    top: 60px;
-    right: -100%;
-    height: calc(100% - 60px);
-    width: 200px;
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 20px;
-    transition: right 0.3s ease;
-  }
-  .nav-links.active {
-    right: 0;
-  }
-  .hero-title {
-    font-size: 1.4rem;
+  .cv-container {
+    width: 95%;
   }
 }
 
 @media (max-width: 576px) {
-  .hero-title {
-    font-size: 1.2rem;
-  }
-  .hero-desc {
-    font-size: 0.85rem;
-  }
   .fancy-timeline-block {
     width: 100%;
     margin-bottom: 40px;
@@ -558,12 +580,5 @@ html, body {
     left: -16px;
     border-right-color: #f8f8f8;
     right: auto;
-  }
-  .carousel-card {
-    width: 140px;
-    height: 160px;
-  }
-  .carousel-card img.project-img {
-    max-height: 70px;
   }
 }
