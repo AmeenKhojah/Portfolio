@@ -271,4 +271,5 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSelectedIndex();
       highlightSelectedCard();
     });
-  });
+  }
+});
