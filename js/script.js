@@ -1,3 +1,4 @@
+/* ========== script.js ========== */
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Dynamic Year in Footer
   const yearSpan = document.getElementById('year');
@@ -39,8 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function positionCards() {
     carouselCards.forEach((card, i) => {
-      const cardAngle = i * angleBetweenCards + rotationAngle;
-      card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
+      let cardAngle = i * angleBetweenCards + rotationAngle;
+
+      // On mobile, we rely on left: 50% in CSS plus a partial transform
+      // So let's only do rotate/translateZ in JS
+      if (window.innerWidth <= 576) {
+        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(300px)`;
+      } else {
+        card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
+      }
     });
   }
 
@@ -110,43 +118,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // DRAG logic (desktop)
+  // Distinguish between a small "click" vs. a big "drag"
+  // Also allow vertical scroll on mobile
   let isDragging = false;
   let startX = 0;
-  let dragDistance = 0;
+  let startY = 0;
+  let dragDistanceX = 0;
+  let dragDistanceY = 0;
 
+  // MOUSE events (desktop)
   carousel.addEventListener('mousedown', (e) => {
     e.preventDefault();
     isDragging = true;
     startX = e.clientX;
-    dragDistance = 0;
+    startY = e.clientY;
+    dragDistanceX = 0;
+    dragDistanceY = 0;
     hideInstruction();
   });
 
   carousel.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
     e.preventDefault();
-    dragDistance = e.clientX - startX;
+    dragDistanceX = e.clientX - startX;
+    dragDistanceY = e.clientY - startY;
   });
 
   carousel.addEventListener('mouseup', (e) => {
     e.preventDefault();
     if (!isDragging) return;
     isDragging = false;
+
     const threshold = 50;
-    if (Math.abs(dragDistance) > threshold) {
-      if (dragDistance < 0) {
+    // Decide if we spun or not
+    if (Math.abs(dragDistanceX) > threshold && 
+        Math.abs(dragDistanceX) > Math.abs(dragDistanceY)) {
+      // Horizontal drag
+      if (dragDistanceX < 0) {
         spinForward();
       } else {
         spinBackward();
       }
     } else {
-      // small drag => click selected
-      const activeCard = carouselCards[selectedIndex];
-      if (activeCard) {
-        alert(`Opening details for: ${
-          activeCard.querySelector('h3')?.textContent || 'Project'
-        }`);
+      // small drag => treat as click ONLY if the user clicked on a card
+      const target = e.target;
+      if (target.classList.contains('carousel-card') || 
+          target.closest('.carousel-card')) {
+        const activeCard = carouselCards[selectedIndex];
+        if (activeCard) {
+          alert(`Opening details for: ${
+            activeCard.querySelector('h3')?.textContent || 'Project'
+          }`);
+        }
       }
     }
   });
@@ -155,42 +178,56 @@ document.addEventListener('DOMContentLoaded', () => {
     isDragging = false;
   });
 
-  // TOUCH logic (mobile)
-  let touchStartX = 0;
-  let touchDistance = 0;
+  // TOUCH events (mobile)
   let isTouching = false;
 
   carousel.addEventListener('touchstart', (e) => {
     isTouching = true;
-    touchStartX = e.touches[0].clientX;
-    touchDistance = 0;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dragDistanceX = 0;
+    dragDistanceY = 0;
     hideInstruction();
   }, { passive: true });
 
   carousel.addEventListener('touchmove', (e) => {
     if (!isTouching) return;
-    touchDistance = e.touches[0].clientX - touchStartX;
-  }, { passive: true });
+    dragDistanceX = e.touches[0].clientX - startX;
+    dragDistanceY = e.touches[0].clientY - startY;
 
-  carousel.addEventListener('touchend', () => {
+    // If vertical movement is greater, let the page scroll
+    if (Math.abs(dragDistanceY) > Math.abs(dragDistanceX)) {
+      return; // do not prevent default; user can scroll
+    } else {
+      e.preventDefault(); // prevent vertical scroll from interfering with horizontal drag
+    }
+  }, { passive: false });
+
+  carousel.addEventListener('touchend', (e) => {
     isTouching = false;
     const threshold = 50;
-    if (Math.abs(touchDistance) > threshold) {
-      if (touchDistance < 0) {
+    if (Math.abs(dragDistanceX) > threshold && 
+        Math.abs(dragDistanceX) > Math.abs(dragDistanceY)) {
+      if (dragDistanceX < 0) {
         spinForward();
       } else {
         spinBackward();
       }
     } else {
-      // small drag => click selected
-      const activeCard = carouselCards[selectedIndex];
-      if (activeCard) {
-        alert(`Opening details for: ${
-          activeCard.querySelector('h3')?.textContent || 'Project'
-        }`);
+      // small drag => treat as click ONLY if tapping on a card
+      const touch = e.changedTouches[0];
+      const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (elem && (elem.classList.contains('carousel-card') || 
+                   elem.closest('.carousel-card'))) {
+        const activeCard = carouselCards[selectedIndex];
+        if (activeCard) {
+          alert(`Opening details for: ${
+            activeCard.querySelector('h3')?.textContent || 'Project'
+          }`);
+        }
       }
     }
-  });
+  }, { passive: true });
 
   // Accessibility: press Enter on a card
   carouselCards.forEach((card) => {
