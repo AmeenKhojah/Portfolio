@@ -97,6 +97,7 @@ html, body {
     align-items: center;
     padding-top: 20px;
     transform: translateX(100%);
+    transition: transform 0.4s ease;
   }
   .nav-links.active {
     transform: translateX(0%);
@@ -109,8 +110,6 @@ html, body {
   #menu-toggle:checked ~ .nav-links.active ~ .nav-brand {
     transform: translateX(-200%);
   }
-  /* Alternatively, we can push brand if we want brand to vanish
-     This is simplified by hooking into .menu-icon's click logic. */
 }
 
 /* ======================================
@@ -540,6 +539,8 @@ html, body {
     padding: 0.5rem;    /* smaller padding so text fits inside */
     /* Removed transform from CSS to prevent conflicts with JS */
     /* transform: translate(-50%, -50%); */
+    /* Disable pointer events to prevent clicks/taps */
+    pointer-events: none;
   }
   .carousel-card img.project-img {
     max-height: 40px;   /* <--- Tweak to allow bigger/smaller images */
