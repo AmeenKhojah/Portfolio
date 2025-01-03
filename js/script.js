@@ -216,16 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       // small drag => treat as click ONLY if tapping on a card
       const touch = e.changedTouches[0];
-      const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (elem && (elem.classList.contains('carousel-card') || 
-                   elem.closest('.carousel-card'))) {
-        const activeCard = carouselCards[selectedIndex];
-        if (activeCard) {
-          alert(`Opening details for: ${
-            activeCard.querySelector('h3')?.textContent || 'Project'
-          }`);
-        }
-      }
+const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+if (elem && elem.classList.contains('carousel-card')) {
+  const activeCard = carouselCards[selectedIndex];
+  if (activeCard && activeCard.classList.contains('selected')) {
+    alert(`Opening details for: ${activeCard.querySelector('h3')?.textContent || 'Project'}`);
+  }
+}
+
     }
   }, { passive: true });
 
