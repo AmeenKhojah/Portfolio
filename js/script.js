@@ -40,9 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let rotationAngle = 0;
   let selectedIndex = 0;
 
-  // Flag to determine if the touch gesture is a scroll
-  let isScrolling = false;
-
   // =========== Position Cards ===========
   function positionCards() {
     carouselCards.forEach((card, i) => {
@@ -195,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
     touchStartY = e.touches[0].clientY;
     diffX = 0;
     diffY = 0;
-    isScrolling = false; // Reset scrolling flag on new touch
     hideInstruction();
   }, { passive: true });
 
@@ -205,22 +201,13 @@ document.addEventListener('DOMContentLoaded', () => {
     diffY = e.touches[0].clientY - touchStartY;
 
     // If user moves vertically more => allow scroll
-    if (Math.abs(diffY) > Math.abs(diffX)) {
-      isScrolling = true;
-      return;
-    } else {
-      e.preventDefault(); // horizontal drag
-    }
+    if (Math.abs(diffY) > Math.abs(diffX)) return;
+    else e.preventDefault(); // horizontal drag
   }, { passive: false });
 
   carousel.addEventListener('touchend', (e) => {
     if (!isTouchDragging) return;
     isTouchDragging = false;
-
-    if (isScrolling) {
-      // Do not treat as click if the gesture was a scroll
-      return;
-    }
 
     if (
       Math.abs(diffX) > DRAG_THRESHOLD &&
