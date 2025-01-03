@@ -119,9 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'Enter') {
       const activeCard = carouselCards[selectedIndex];
       if (activeCard) {
-        alert(`Opening details for: ${
-          activeCard.querySelector('h3')?.textContent || 'Project'
-        }`);
+        const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
+        alert(`You clicked on X (${projectName})`);
       }
     }
   });
@@ -169,9 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
           elem.closest('.carousel-card')) {
         const card = carouselCards[selectedIndex];
         if (card) {
-          alert(`Opening details for: ${
-            card.querySelector('h3')?.textContent || 'Project'
-          }`);
+          const projectName = card.querySelector('h3')?.textContent || 'Project';
+          alert(`You clicked on X (${projectName})`);
         }
       }
     }
@@ -238,9 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
       )) {
         const card = carouselCards[selectedIndex];
         if (card) {
-          alert(`Opening details for: ${
-            card.querySelector('h3')?.textContent || 'Project'
-          }`);
+          const projectName = card.querySelector('h3')?.textContent || 'Project';
+          alert(`You clicked on X (${projectName})`);
         }
       }
     }
@@ -250,9 +247,8 @@ document.addEventListener('DOMContentLoaded', () => {
   carouselCards.forEach((card) => {
     card.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        alert(`Opening details for: ${
-          card.querySelector('h3')?.textContent || 'Project'
-        }`);
+        const projectName = card.querySelector('h3')?.textContent || 'Project';
+        alert(`You clicked on X (${projectName})`);
       }
     });
   });
