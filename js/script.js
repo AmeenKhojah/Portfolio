@@ -9,13 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuToggle = document.getElementById('menu-toggle');
   const navLinks = document.querySelector('.nav-links');
   const menuIcon = document.querySelector('.menu-icon');
+  const navBrand = document.querySelector('.nav-brand');
 
   // Clicking hamburger toggles the nav
   if (menuIcon) {
-    menuIcon.addEventListener('click', () => {
+    menuIcon.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent event from bubbling up
       navLinks.classList.toggle('active');
       menuIcon.classList.toggle('active');
       menuToggle.checked = !menuToggle.checked;
+
+      // Push the nav-brand out when nav is active
+      if (navLinks.classList.contains('active')) {
+        navBrand.style.transform = 'translateX(-200%)';
+      } else {
+        navBrand.style.transform = 'translateX(0)';
+      }
     });
 
     // Close nav and reset brand position when clicking outside
@@ -25,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
           navLinks.classList.remove('active');
           menuIcon.classList.remove('active');
           menuToggle.checked = false;
+          navBrand.style.transform = 'translateX(0)';
         }
       }
     });
@@ -36,10 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
       navLinks.classList.remove('active');
       if (menuIcon) menuIcon.classList.remove('active');
       menuToggle.checked = false;
+      navBrand.style.transform = 'translateX(0)';
     });
   });
 
-  // 3) PC Carousel (Untouched)
+  // 3) 3D Carousel (PC and Mobile)
   const carousel = document.querySelector('.carousel');
   const carouselCards = document.querySelectorAll('.carousel-card');
   const instruction = document.getElementById('carousel-instruction');
@@ -55,19 +66,23 @@ document.addEventListener('DOMContentLoaded', () => {
       carouselCards.forEach((card, i) => {
         let cardAngle = i * angleBetweenCards + rotationAngle;
 
-        // For smaller screens => smaller circle
+        // Adjust translateZ based on screen size
         if (window.innerWidth <= 576) {
-          // 3D carousel removed for mobile; handled separately
-          card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(150px)`;
+          // Smaller translateZ for mobile to fit within screen
+          card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(80px)`;
+        } else if (window.innerWidth <= 768) {
+          // Medium translateZ for tablets
+          card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(120px)`;
         } else {
-          card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
+          // Larger translateZ for desktops
+          card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(300px)`;
         }
       });
     }
 
     // =========== Update Selected Card ===========
     function updateSelectedIndex() {
-      let minDiff = 999999;
+      let minDiff = Infinity;
       let bestIndex_ = 0;
 
       carouselCards.forEach((_, i) => {
@@ -141,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let dragDistY = 0;
     const DRAG_THRESHOLD = 25;
 
-    // We attach pointer events to the entire carousel so you can drag from ANY part of each card
+    // Dragging logic
     carousel.addEventListener('mousedown', (e) => {
       e.preventDefault();
       isDragging = true;
@@ -188,61 +203,72 @@ document.addEventListener('DOMContentLoaded', () => {
       isDragging = false;
     });
 
+    // TOUCH EVENTS for Mobile Carousel
+    let isTouchDragging = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchDragDistX = 0;
+    let touchDragDistY = 0;
+
+    carousel.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 1) return; // ignore multi-touch
+      isTouchDragging = true;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchDragDistX = 0;
+      touchDragDistY = 0;
+      hideInstruction();
+    }, { passive: true });
+
+    carousel.addEventListener('touchmove', (e) => {
+      if (!isTouchDragging) return;
+      touchDragDistX = e.touches[0].clientX - touchStartX;
+      touchDragDistY = e.touches[0].clientY - touchStartY;
+    }, { passive: true });
+
+    carousel.addEventListener('touchend', (e) => {
+      if (!isTouchDragging) return;
+      isTouchDragging = false;
+
+      if (
+        Math.abs(touchDragDistX) > DRAG_THRESHOLD &&
+        Math.abs(touchDragDistX) > Math.abs(touchDragDistY)
+      ) {
+        if (touchDragDistX < 0) spinForward();
+        else spinBackward();
+      } else {
+        // treat as click/tap on the card
+        const touch = e.changedTouches[0];
+        const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (elem && (
+          elem.classList.contains('carousel-card') ||
+          elem.closest('.carousel-card')
+        )) {
+          const card = carouselCards[selectedIndex];
+          if (card) {
+            alert(`Opening details for: ${
+              card.querySelector('h3')?.textContent || 'Project'
+            }`);
+          }
+        }
+      }
+    }, { passive: true });
+
+    // Accessibility: press Enter on card
+    carouselCards.forEach((card) => {
+      card.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          alert(`Opening details for: ${
+            card.querySelector('h3')?.textContent || 'Project'
+          }`);
+        }
+      });
+    });
+
     // Reposition on orientation/resize => immediate effect
     window.addEventListener('resize', () => {
       positionCards();
       updateSelectedIndex();
       highlightSelectedCard();
     });
-  }
-
-  // 4) Revamped Mobile Carousel
-  const mobileCarousel = document.querySelector('.mobile-carousel');
-  const mobileCards = document.querySelectorAll('.mobile-carousel-card');
-
-  if (mobileCarousel && mobileCards.length > 0) {
-    // Click/Tap handling for mobile cards
-    mobileCards.forEach((card, index) => {
-      card.addEventListener('click', (e) => {
-        // Prevent click if user is swiping
-        if (card.dataset.isSwiping === 'true') {
-          // Reset flag
-          card.dataset.isSwiping = 'false';
-          return;
-        }
-        alert(`Opening details for: ${card.querySelector('h3')?.textContent || 'Project'}`);
-      });
-
-      // Touch handling to distinguish between swipe and tap
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let touchEndX = 0;
-      let touchEndY = 0;
-      let touchMoved = false;
-
-      card.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
-        touchMoved = false;
-      }, { passive: true });
-
-      card.addEventListener('touchmove', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        touchEndY = e.changedTouches[0].screenY;
-        if (Math.abs(touchEndX - touchStartX) > 10 || Math.abs(touchEndY - touchStartY) > 10) {
-          touchMoved = true;
-          card.dataset.isSwiping = 'true';
-        }
-      }, { passive: true });
-
-      card.addEventListener('touchend', (e) => {
-        if (!touchMoved) {
-          // It's a tap
-          alert(`Opening details for: ${card.querySelector('h3')?.textContent || 'Project'}`);
-        }
-        // Reset flag
-        card.dataset.isSwiping = 'false';
-      }, { passive: true });
-    });
-  }
-});
+  });
