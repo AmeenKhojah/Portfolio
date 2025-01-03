@@ -40,9 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let rotationAngle = 0;
   let selectedIndex = 0;
 
-  // Flag to determine if the touch gesture is a scroll
-  let isScrolling = false;
-
   // Function to detect if the device is mobile based on viewport width
   function isMobileDevice() {
     return window.innerWidth <= 576;
@@ -232,10 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ) {
       if (diffX < 0) spinForward();
       else spinBackward();
-    } else {
-      // Do nothing on tap/click in mobile as per instructions
-      // Removed the alert or any other click interaction
     }
+    // No click/tap interaction on mobile as per requirements
   }, { passive: true });
 
   // Accessibility: press Enter on card (only on desktop)
