@@ -5,31 +5,27 @@ document.addEventListener('DOMContentLoaded', () => {
     yearSpan.textContent = new Date().getFullYear();
   }
 
-  // 2) Close Mobile Nav When Clicking Outside
+  // 2) Mobile Nav Toggle
   const menuToggle = document.getElementById('menu-toggle');
   const navLinks = document.querySelector('.nav-links');
   const menuIcon = document.querySelector('.menu-icon');
 
-  // Function to close the menu
-  function closeMenu() {
-    if (menuToggle.checked) {
-      menuToggle.checked = false;
-    }
+  // Clicking hamburger toggles the nav
+  if (menuIcon) {
+    menuIcon.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      menuIcon.classList.toggle('active');
+      menuToggle.checked = !menuToggle.checked;
+    });
   }
 
-  // Event listener to close the menu when clicking outside
-  document.addEventListener('click', (event) => {
-    const isClickInsideMenu = navLinks.contains(event.target);
-    const isClickOnMenuIcon = menuIcon.contains(event.target);
-
-    if (!isClickInsideMenu && !isClickOnMenuIcon) {
-      closeMenu();
-    }
-  });
-
-  // Prevent clicks inside the nav-links from closing the menu
-  navLinks.addEventListener('click', (e) => {
-    e.stopPropagation();
+  // Close mobile nav if a link is clicked
+  document.querySelectorAll('.nav-links li a').forEach(link => {
+    link.addEventListener('click', () => {
+      navLinks.classList.remove('active');
+      if (menuIcon) menuIcon.classList.remove('active');
+      menuToggle.checked = false;
+    });
   });
 
   // 3) Carousel
@@ -138,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const activeCard = carouselCards[selectedIndex];
       if (activeCard) {
         const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on ${projectName}`);
+        showMessage(`You clicked on X (${projectName})`);
       }
     }
   });
@@ -187,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
           highlightSelectedCard();
           hideInstruction();
           const projectName = elem.querySelector('h3')?.textContent || 'Project';
-          showMessage(`You clicked on ${projectName}`);
+          showMessage(`You clicked on X (${projectName})`);
         }
       }
     }
@@ -250,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
           highlightSelectedCard();
           hideInstruction();
           const projectName = card.querySelector('h3')?.textContent || 'Project';
-          showMessage(`You clicked on ${projectName}`);
+          showMessage(`You clicked on X (${projectName})`);
         }
       }
     }
@@ -262,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const projectName = card.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on ${projectName}`);
+        showMessage(`You clicked on X (${projectName})`);
       }
     });
 
@@ -270,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('click', (e) => {
       if (clickPrevented) return; // Prevent click if it was a drag
       const projectName = card.querySelector('h3')?.textContent || 'Project';
-      showMessage(`You clicked on ${projectName}`);
+      showMessage(`You clicked on X (${projectName})`);
     });
   });
 
