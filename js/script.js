@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const carousel = document.querySelector('.carousel');
   const carouselCards = document.querySelectorAll('.carousel-card');
   const instruction = document.getElementById('carousel-instruction');
+  const messageOverlay = document.getElementById('message-overlay'); // New element
   if (!carousel || carouselCards.length === 0) return;
 
   const totalCards = carouselCards.length;
@@ -40,10 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let rotationAngle = 0;
   let selectedIndex = 0;
 
-  // Function to detect if the device is mobile based on viewport width
-  function isMobileDevice() {
-    return window.innerWidth <= 576;
-  }
+  // Flags for drag and click prevention
+  let isDragging = false;
+  let clickPrevented = false;
+
+  // Drag threshold increased to 50 to prevent misinterpretation
+  const DRAG_THRESHOLD = 50;
 
   // =========== Position Cards ===========
   function positionCards() {
@@ -51,9 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
       let cardAngle = i * angleBetweenCards + rotationAngle;
 
       // For smaller screens => smaller circle
-      if (isMobileDevice()) {
-        // Adjusted transform to prevent conflicts with CSS
-        card.style.transform = `rotateY(${cardAngle}deg) translateZ(150px)`;
+      if (window.innerWidth <= 576) {
+        // Control circle radius on mobile
+        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(150px)`;
       } else {
         card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
       }
@@ -62,12 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // =========== Update Selected Card ===========
   function updateSelectedIndex() {
-    let minDiff = 999999;
+    let minDiff = Infinity;
     let bestIndex_ = 0;
 
     carouselCards.forEach((_, i) => {
       let rawAngle = i * angleBetweenCards + rotationAngle;
-      let cardAngle = ((rawAngle % 360) + 360) % 360; // normalized 0..360
+      let cardAngle = ((rawAngle % 360) + 360) % 360; // Normalize 0..360
       let diff = Math.min(Math.abs(cardAngle), 360 - Math.abs(cardAngle));
       if (diff < minDiff) {
         minDiff = diff;
@@ -92,7 +95,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial positioning
+  function showMessage(message) {
+    if (!messageOverlay) return;
+    messageOverlay.textContent = message;
+    messageOverlay.classList.add('show');
+    setTimeout(() => {
+      messageOverlay.classList.remove('show');
+    }, 2000); // Message disappears after 2 seconds
+  }
+
+  // Initial Setup
   positionCards();
   updateSelectedIndex();
   highlightSelectedCard();
@@ -119,28 +131,24 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'ArrowLeft') {
       spinBackward();
     } else if (e.key === 'Enter') {
-      if (!isMobileDevice()) { // Only allow Enter key interaction on desktop
-        const activeCard = carouselCards[selectedIndex];
-        if (activeCard) {
-          const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
-          alert(`You clicked on ${projectName}`);
-        }
+      const activeCard = carouselCards[selectedIndex];
+      if (activeCard) {
+        const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
+        showMessage(`You clicked on X (${projectName})`);
       }
     }
   });
 
   // MOUSE DRAG ON PC
-  let isDragging = false;
   let startX = 0;
   let startY = 0;
   let dragDistX = 0;
   let dragDistY = 0;
-  const DRAG_THRESHOLD = 25;
 
-  // We attach pointer events to the entire carousel so you can drag from ANY part of each card
   carousel.addEventListener('mousedown', (e) => {
     e.preventDefault();
-    isDragging = true;
+    isDragging = false;
+    clickPrevented = false;
     startX = e.clientX;
     startY = e.clientY;
     dragDistX = 0;
@@ -149,33 +157,37 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   carousel.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
+    if (e.buttons !== 1) return; // Only track when mouse is pressed
     dragDistX = e.clientX - startX;
     dragDistY = e.clientY - startY;
+    if (!isDragging) {
+      if (Math.abs(dragDistX) > DRAG_THRESHOLD && Math.abs(dragDistX) > Math.abs(dragDistY)) {
+        isDragging = true;
+        clickPrevented = true;
+      }
+    }
   });
 
   carousel.addEventListener('mouseup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-
-    if (
-      Math.abs(dragDistX) > DRAG_THRESHOLD &&
-      Math.abs(dragDistX) > Math.abs(dragDistY)
-    ) {
-      // spin horizontally
+    if (isDragging) {
       if (dragDistX < 0) spinForward();
       else spinBackward();
     } else {
-      // treat as click only on desktop
-      if (!isMobileDevice()) {
-        const elem = e.target;
-        const card = elem.closest('.carousel-card');
-        if (card && carouselCards[selectedIndex] === card) {
-          const projectName = card.querySelector('h3')?.textContent || 'Project';
-          alert(`You clicked on ${projectName}`);
+      // Click action
+      const elem = e.target.closest('.carousel-card');
+      if (elem) {
+        const index = Array.from(carouselCards).indexOf(elem);
+        if (index !== -1) {
+          selectedIndex = index;
+          updateSelectedIndex();
+          highlightSelectedCard();
+          hideInstruction();
+          const projectName = elem.querySelector('h3')?.textContent || 'Project';
+          showMessage(`You clicked on X (${projectName})`);
         }
       }
     }
+    isDragging = false;
   });
 
   carousel.addEventListener('mouseleave', () => {
@@ -183,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // MOBILE TOUCH DRAG
-  let isTouchDragging = false;
   let touchStartX = 0;
   let touchStartY = 0;
   let diffX = 0;
@@ -191,17 +202,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   carousel.addEventListener('touchstart', (e) => {
     if (e.touches.length > 1) return; // ignore multi-touch
-    isTouchDragging = true;
+    isDragging = false;
+    clickPrevented = false;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     diffX = 0;
     diffY = 0;
-    isScrolling = false; // Reset scrolling flag on new touch
     hideInstruction();
   }, { passive: true });
 
   carousel.addEventListener('touchmove', (e) => {
-    if (!isTouchDragging) return;
+    if (e.touches.length > 1) return; // ignore multi-touch
     diffX = e.touches[0].clientX - touchStartX;
     diffY = e.touches[0].clientY - touchStartY;
 
@@ -211,35 +222,51 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     } else {
       e.preventDefault(); // horizontal drag
+      if (!isDragging && Math.abs(diffX) > DRAG_THRESHOLD) {
+        isDragging = true;
+        clickPrevented = true;
+      }
     }
   }, { passive: false });
 
   carousel.addEventListener('touchend', (e) => {
-    if (!isTouchDragging) return;
-    isTouchDragging = false;
-
-    if (isScrolling) {
-      // Do not treat as click if the gesture was a scroll
-      return;
-    }
-
-    if (
-      Math.abs(diffX) > DRAG_THRESHOLD &&
-      Math.abs(diffX) > Math.abs(diffY)
-    ) {
+    if (isDragging) {
       if (diffX < 0) spinForward();
       else spinBackward();
+    } else {
+      // Click action
+      const touch = e.changedTouches[0];
+      const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+      const card = elem.closest('.carousel-card');
+      if (card) {
+        const index = Array.from(carouselCards).indexOf(card);
+        if (index !== -1) {
+          selectedIndex = index;
+          updateSelectedIndex();
+          highlightSelectedCard();
+          hideInstruction();
+          const projectName = card.querySelector('h3')?.textContent || 'Project';
+          showMessage(`You clicked on X (${projectName})`);
+        }
+      }
     }
-    // No click/tap interaction on mobile as per requirements
+    isDragging = false;
   }, { passive: true });
 
-  // Accessibility: press Enter on card (only on desktop)
-  carouselCards.forEach((card, index) => {
+  // Accessibility: press Enter on card
+  carouselCards.forEach((card) => {
     card.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !isMobileDevice()) {
+      if (e.key === 'Enter') {
         const projectName = card.querySelector('h3')?.textContent || 'Project';
-        alert(`You clicked on ${projectName}`);
+        showMessage(`You clicked on X (${projectName})`);
       }
+    });
+
+    // Attach Click Event Listener to Each Card
+    card.addEventListener('click', (e) => {
+      if (clickPrevented) return; // Prevent click if it was a drag
+      const projectName = card.querySelector('h3')?.textContent || 'Project';
+      showMessage(`You clicked on X (${projectName})`);
     });
   });
 
