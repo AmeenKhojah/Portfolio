@@ -535,11 +535,10 @@ html, body {
   .carousel-card {
     top: 50%;
     left: 50% !important;
+    transform: translate(-50%, -50%);
     width: 110px;       /* <--- Tweak width to shrink/grow the card */
     height: 130px;      /* <--- Tweak height to shrink/grow the card */
     padding: 0.5rem;    /* smaller padding so text fits inside */
-    /* Removed transform from CSS to prevent conflicts with JS */
-    /* transform: translate(-50%, -50%); */
   }
   .carousel-card img.project-img {
     max-height: 40px;   /* <--- Tweak to allow bigger/smaller images */
