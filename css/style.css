@@ -32,16 +32,18 @@ html, body {
 
 .navbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   height: 60px;
   padding: 0 1.5rem;
 }
 
+/* The brand is left aligned, we want it to push out of view in mobile nav open */
 .nav-brand {
   font-size: 1.5rem;
   font-weight: 700;
   color: #fff;
+  transition: transform 0.4s ease;
 }
 
 /* Desktop nav links */
@@ -49,8 +51,8 @@ html, body {
   list-style: none;
   display: flex;
   gap: 20px;
-  /* We'll slide in from the right for mobile */
-  transition: right 0.4s ease;
+  margin-left: auto; /* brand on left, nav links on right */
+  transition: transform 0.4s ease, right 0.4s ease;
 }
 .nav-links li a {
   color: #fff;
@@ -65,16 +67,16 @@ html, body {
   color: #fff;
 }
 
-/* Mobile nav toggle (hidden by default) */
+/* Mobile nav toggle hidden by default */
 #menu-toggle {
   display: none;
 }
 .menu-icon {
   display: none;
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   cursor: pointer;
   color: #fff;
-  margin-left: auto;
+  margin-left: 15px;
 }
 
 /* Mobile nav styling */
@@ -82,27 +84,33 @@ html, body {
   .menu-icon {
     display: block;
   }
-
   .nav-links {
     position: fixed;
     top: 60px;
-    right: -100%;
-    width: 200px;
-    height: calc(100% - 60px);
-    flex-direction: column;
-    background-color: rgba(0,0,0,0.85);
-    backdrop-filter: blur(8px);
-    padding-top: 20px;
-    z-index: 9999;
-  }
-
-  .nav-links.active {
     right: 0;
+    height: calc(100% - 60px);
+    width: 100%;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(8px);
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 20px;
+    transform: translateX(100%);
   }
-
+  .nav-links.active {
+    transform: translateX(0%);
+  }
   .nav-links li {
     margin-bottom: 20px;
   }
+
+  /* When nav is active => push brand out of view */
+  #menu-toggle:checked ~ .nav-links.active ~ .nav-brand {
+    transform: translateX(-200%);
+  }
+  /* Alternatively, we can push brand if we want brand to vanish
+     This is simplified by hooking into .menu-icon's click logic. */
 }
 
 /* ======================================
@@ -125,7 +133,7 @@ html, body {
   z-index: 1;
 }
 
-/* Robot to the right on large screens */
+/* Robot to the right on larger screens */
 #canvas3d {
   width: 600px;
   height: 600px;
@@ -228,7 +236,7 @@ html, body {
   filter: brightness(0.7);
 }
 
-/* Adjust hero for smaller screens */
+/* Adjust hero on smaller screens */
 @media (max-width: 992px) {
   .hero-section {
     min-height: auto;
@@ -259,13 +267,11 @@ html, body {
     margin: 0 auto;
   }
 }
-
 @media (max-width: 768px) {
   .hero-title {
     font-size: 1.4rem;
   }
 }
-
 @media (max-width: 576px) {
   .hero-title {
     font-size: 1.2rem;
@@ -417,7 +423,7 @@ html, body {
 .projects-section {
   background-color: #fff;
   color: #000;
-  padding: 80px 20px;
+  padding: 80px 20px 120px; /* extra bottom space to avoid overlap on orientation change */
   text-align: center;
   min-height: 110vh;
 }
@@ -428,14 +434,14 @@ html, body {
 }
 .carousel-instruction {
   color: #000;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem; /* slightly bigger gap above carousel */
   transition: opacity 1s ease-out;
 }
 .carousel-instruction.fade-out {
   opacity: 0;
 }
 
-/* We want the entire card to be draggable/clickable. */
+/* The entire card is draggable/clickable */
 .carousel,
 .carousel * {
   user-select: none;
@@ -520,28 +526,28 @@ html, body {
   overflow-wrap: break-word;
 }
 
-/* On phone => smaller so user sees entire circle from start. */
+/* On phone => even smaller so user sees entire circle from the start */
 @media (max-width: 576px) {
   .carousel-wrapper {
-    perspective: 600px; /* smaller perspective => smaller circle */
-    height: 220px;
+    perspective: 500px; /* <--- Tweak this to make the circle smaller or bigger */
+    height: 200px;      /* <--- Tweak the carousel wrapper's height for more/less space */
   }
   .carousel-card {
     top: 50%;
     left: 50% !important;
     transform: translate(-50%, -50%);
-    width: 120px;
-    height: 140px;
-    padding: 0.5rem; /* smaller padding so text fits inside */
+    width: 110px;       /* <--- Tweak width to shrink/grow the card */
+    height: 130px;      /* <--- Tweak height to shrink/grow the card */
+    padding: 0.5rem;    /* smaller padding so text fits inside */
   }
   .carousel-card img.project-img {
-    max-height: 50px;
+    max-height: 40px;   /* <--- Tweak to allow bigger/smaller images */
   }
   .carousel-card h3 {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
   .carousel-card p {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     line-height: 1.2;
   }
 }
