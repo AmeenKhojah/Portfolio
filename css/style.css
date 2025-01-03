@@ -461,6 +461,9 @@ html, body {
   position: relative;
   overflow: visible;
   cursor: grab;
+  /* Temporary Debugging Styles */
+  border: 2px solid red;
+  background-color: rgba(255, 0, 0, 0.1);
 }
 .carousel-wrapper:active {
   cursor: grabbing;
@@ -473,6 +476,9 @@ html, body {
   position: relative;
   transform-style: preserve-3d;
   transition: transform 1s ease;
+  /* Temporary Debugging Styles */
+  border: 2px solid blue;
+  background-color: rgba(0, 0, 255, 0.1);
 }
 
 /* Carousel Cards */
@@ -497,6 +503,9 @@ html, body {
   color: #000;
   cursor: grab;
   overflow-wrap: break-word; /* keep text inside card */
+  /* Temporary Debugging Styles */
+  border: 1px solid green;
+  background-color: rgba(0, 255, 0, 0.1);
 }
 .carousel-card:active {
   cursor: grabbing;
@@ -530,6 +539,7 @@ html, body {
   /* Adjust carousel height for mobile */
   .carousel-wrapper {
     height: 250px;
+    perspective: 800px;
   }
   .carousel-card {
     width: 150px;
@@ -546,10 +556,12 @@ html, body {
     font-size: 0.8rem;
   }
 }
+
 @media (max-width: 576px) {
   /* Further adjust carousel for smaller screens */
   .carousel-wrapper {
     height: 200px;
+    perspective: 600px;
   }
   .carousel-card {
     width: 120px;
