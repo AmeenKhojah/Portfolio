@@ -203,29 +203,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, { passive: false });
 
-  carousel.addEventListener('touchend', (e) => {
-    isTouching = false;
-    const threshold = 50;
-    if (Math.abs(dragDistanceX) > threshold && 
-        Math.abs(dragDistanceX) > Math.abs(dragDistanceY)) {
-      if (dragDistanceX < 0) {
-        spinForward();
-      } else {
-        spinBackward();
-      }
+carousel.addEventListener('touchend', (e) => {
+  isTouching = false;
+  const threshold = 50;
+  if (Math.abs(dragDistanceX) > threshold && 
+      Math.abs(dragDistanceX) > Math.abs(dragDistanceY)) {
+    if (dragDistanceX < 0) {
+      spinForward();
     } else {
-      // small drag => treat as click ONLY if tapping on a card
-      const touch = e.changedTouches[0];
-const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-if (elem && elem.classList.contains('carousel-card')) {
-  const activeCard = carouselCards[selectedIndex];
-  if (activeCard && activeCard.classList.contains('selected')) {
-    alert(`Opening details for: ${activeCard.querySelector('h3')?.textContent || 'Project'}`);
-  }
-}
-
+      spinBackward();
     }
-  }, { passive: true });
+  } else {
+    const touch = e.changedTouches[0];
+    const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+    const activeCard = carouselCards[selectedIndex];
+    if (elem && activeCard && activeCard.contains(elem) && 
+        activeCard.classList.contains('selected')) {
+      alert(`Opening details for: ${
+        activeCard.querySelector('h3')?.textContent || 'Project'
+      }`);
+    }
+  }
+}, { passive: true });
+
 
   // Accessibility: press Enter on a card
   carouselCards.forEach((card) => {
