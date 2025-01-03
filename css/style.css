@@ -489,12 +489,11 @@ html, body {
   justify-content: flex-start;
   color: #000;
   cursor: pointer;
-  z-index: 1; /* Default z-index for all cards */
 }
 .carousel-card.selected {
   box-shadow: 0 8px 20px rgba(200, 80, 192, 0.5);
-  z-index: 10; /* Higher z-index for the centered card */
-  pointer-events: auto; /* Ensure it is clickable */
+  z-index: 10; /* Bring the centered card to the front */
+  pointer-events: auto; /* Ensure touch and click events are detected */
 }
 
 .carousel-card img.project-img {
@@ -523,7 +522,6 @@ html, body {
     height: 200px;
   }
   .carousel-card {
-
     top: 50%;
     left: 50% !important; /* center on mobile */
     transform: translate(-50%, -50%); /* will apply rotateY separately in JS */
