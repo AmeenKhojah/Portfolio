@@ -253,6 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showMessage(`You clicked on X (${projectName})`);
       }
     });
+
+    // Attach Click Event Listener to Each Card
+    card.addEventListener('click', () => {
+      const projectName = card.querySelector('h3')?.textContent || 'Project';
+      showMessage(`You clicked on X (${projectName})`);
+    });
   });
 
   // Reposition on orientation/resize => immediate effect
