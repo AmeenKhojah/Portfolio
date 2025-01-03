@@ -41,8 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let rotationAngle = 0;
   let selectedIndex = 0;
 
-  // Flag to determine if the touch gesture is a scroll
-  let isScrolling = false;
+  // Flags for drag and click prevention
+  let isDragging = false;
+  let clickPrevented = false;
+
+  // Drag threshold increased to 50 to prevent misinterpretation
+  const DRAG_THRESHOLD = 50;
 
   // =========== Position Cards ===========
   function positionCards() {
@@ -51,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // For smaller screens => smaller circle
       if (window.innerWidth <= 576) {
-        // Tweak 'translateZ(...)' to control circle radius on mobile
+        // Control circle radius on mobile
         card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(150px)`;
       } else {
         card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
@@ -61,12 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // =========== Update Selected Card ===========
   function updateSelectedIndex() {
-    let minDiff = 999999;
+    let minDiff = Infinity;
     let bestIndex_ = 0;
 
     carouselCards.forEach((_, i) => {
       let rawAngle = i * angleBetweenCards + rotationAngle;
-      let cardAngle = ((rawAngle % 360) + 360) % 360; // normalized 0..360
+      let cardAngle = ((rawAngle % 360) + 360) % 360; // Normalize 0..360
       let diff = Math.min(Math.abs(cardAngle), 360 - Math.abs(cardAngle));
       if (diff < minDiff) {
         minDiff = diff;
@@ -100,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000); // Message disappears after 2 seconds
   }
 
-  // Initial
+  // Initial Setup
   positionCards();
   updateSelectedIndex();
   highlightSelectedCard();
@@ -136,17 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // MOUSE DRAG ON PC
-  let isDragging = false;
   let startX = 0;
   let startY = 0;
   let dragDistX = 0;
   let dragDistY = 0;
-  const DRAG_THRESHOLD = 25;
 
-  // We attach pointer events to the entire carousel so you can drag from ANY part of each card
   carousel.addEventListener('mousedown', (e) => {
     e.preventDefault();
-    isDragging = true;
+    isDragging = false;
+    clickPrevented = false;
     startX = e.clientX;
     startY = e.clientY;
     dragDistX = 0;
@@ -155,31 +157,37 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   carousel.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
+    if (e.buttons !== 1) return; // Only track when mouse is pressed
     dragDistX = e.clientX - startX;
     dragDistY = e.clientY - startY;
+    if (!isDragging) {
+      if (Math.abs(dragDistX) > DRAG_THRESHOLD && Math.abs(dragDistX) > Math.abs(dragDistY)) {
+        isDragging = true;
+        clickPrevented = true;
+      }
+    }
   });
 
   carousel.addEventListener('mouseup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-
-    if (
-      Math.abs(dragDistX) > DRAG_THRESHOLD &&
-      Math.abs(dragDistX) > Math.abs(dragDistY)
-    ) {
-      // spin horizontally
+    if (isDragging) {
       if (dragDistX < 0) spinForward();
       else spinBackward();
     } else {
-      // treat as click
-      const elem = e.target;
-      const card = elem.closest('.carousel-card');
-      if (card) {
-        const projectName = card.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on X (${projectName})`);
+      // Click action
+      const elem = e.target.closest('.carousel-card');
+      if (elem) {
+        const index = Array.from(carouselCards).indexOf(elem);
+        if (index !== -1) {
+          selectedIndex = index;
+          updateSelectedIndex();
+          highlightSelectedCard();
+          hideInstruction();
+          const projectName = elem.querySelector('h3')?.textContent || 'Project';
+          showMessage(`You clicked on X (${projectName})`);
+        }
       }
     }
+    isDragging = false;
   });
 
   carousel.addEventListener('mouseleave', () => {
@@ -187,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // MOBILE TOUCH DRAG
-  let isTouchDragging = false;
   let touchStartX = 0;
   let touchStartY = 0;
   let diffX = 0;
@@ -195,17 +202,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   carousel.addEventListener('touchstart', (e) => {
     if (e.touches.length > 1) return; // ignore multi-touch
-    isTouchDragging = true;
+    isDragging = false;
+    clickPrevented = false;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     diffX = 0;
     diffY = 0;
-    isScrolling = false; // Reset scrolling flag on new touch
     hideInstruction();
   }, { passive: true });
 
   carousel.addEventListener('touchmove', (e) => {
-    if (!isTouchDragging) return;
+    if (e.touches.length > 1) return; // ignore multi-touch
     diffX = e.touches[0].clientX - touchStartX;
     diffY = e.touches[0].clientY - touchStartY;
 
@@ -215,34 +222,35 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     } else {
       e.preventDefault(); // horizontal drag
+      if (!isDragging && Math.abs(diffX) > DRAG_THRESHOLD) {
+        isDragging = true;
+        clickPrevented = true;
+      }
     }
   }, { passive: false });
 
   carousel.addEventListener('touchend', (e) => {
-    if (!isTouchDragging) return;
-    isTouchDragging = false;
-
-    if (isScrolling) {
-      // Do not treat as click if the gesture was a scroll
-      return;
-    }
-
-    if (
-      Math.abs(diffX) > DRAG_THRESHOLD &&
-      Math.abs(diffX) > Math.abs(diffY)
-    ) {
+    if (isDragging) {
       if (diffX < 0) spinForward();
       else spinBackward();
     } else {
-      // treat as click
+      // Click action
       const touch = e.changedTouches[0];
       const elem = document.elementFromPoint(touch.clientX, touch.clientY);
       const card = elem.closest('.carousel-card');
       if (card) {
-        const projectName = card.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on X (${projectName})`);
+        const index = Array.from(carouselCards).indexOf(card);
+        if (index !== -1) {
+          selectedIndex = index;
+          updateSelectedIndex();
+          highlightSelectedCard();
+          hideInstruction();
+          const projectName = card.querySelector('h3')?.textContent || 'Project';
+          showMessage(`You clicked on X (${projectName})`);
+        }
       }
     }
+    isDragging = false;
   }, { passive: true });
 
   // Accessibility: press Enter on card
@@ -255,7 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Attach Click Event Listener to Each Card
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (clickPrevented) return; // Prevent click if it was a drag
       const projectName = card.querySelector('h3')?.textContent || 'Project';
       showMessage(`You clicked on X (${projectName})`);
     });
