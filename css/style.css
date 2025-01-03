@@ -582,6 +582,30 @@ html, body {
 }
 
 /* ======================================
+   MESSAGE OVERLAY
+====================================== */
+.message-overlay {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 25px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 2000;
+  font-size: 1rem;
+}
+
+.message-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ======================================
    RESPONSIVE
 ====================================== */
 @media (max-width: 992px) {
