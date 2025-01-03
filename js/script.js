@@ -43,13 +43,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Flag to determine if the touch gesture is a scroll
   let isScrolling = false;
 
+  // Function to detect if the device is mobile based on viewport width
+  function isMobileDevice() {
+    return window.innerWidth <= 576;
+  }
+
   // =========== Position Cards ===========
   function positionCards() {
     carouselCards.forEach((card, i) => {
       let cardAngle = i * angleBetweenCards + rotationAngle;
 
       // For smaller screens => smaller circle
-      if (window.innerWidth <= 576) {
+      if (isMobileDevice()) {
         // Adjusted transform to prevent conflicts with CSS
         card.style.transform = `rotateY(${cardAngle}deg) translateZ(150px)`;
       } else {
@@ -90,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial
+  // Initial positioning
   positionCards();
   updateSelectedIndex();
   highlightSelectedCard();
@@ -117,10 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'ArrowLeft') {
       spinBackward();
     } else if (e.key === 'Enter') {
-      const activeCard = carouselCards[selectedIndex];
-      if (activeCard) {
-        const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
-        alert(`You clicked on ${projectName}`);
+      if (!isMobileDevice()) { // Only allow Enter key interaction on desktop
+        const activeCard = carouselCards[selectedIndex];
+        if (activeCard) {
+          const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
+          alert(`You clicked on ${projectName}`);
+        }
       }
     }
   });
@@ -162,12 +169,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dragDistX < 0) spinForward();
       else spinBackward();
     } else {
-      // treat as click
-      const elem = e.target;
-      const card = elem.closest('.carousel-card');
-      if (card && carouselCards[selectedIndex] === card) {
-        const projectName = card.querySelector('h3')?.textContent || 'Project';
-        alert(`You clicked on ${projectName}`);
+      // treat as click only on desktop
+      if (!isMobileDevice()) {
+        const elem = e.target;
+        const card = elem.closest('.carousel-card');
+        if (card && carouselCards[selectedIndex] === card) {
+          const projectName = card.querySelector('h3')?.textContent || 'Project';
+          alert(`You clicked on ${projectName}`);
+        }
       }
     }
   });
@@ -224,21 +233,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (diffX < 0) spinForward();
       else spinBackward();
     } else {
-      // treat as click
-      const touch = e.changedTouches[0];
-      const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-      const card = elem.closest('.carousel-card');
-      if (card && carouselCards[selectedIndex] === card) {
-        const projectName = card.querySelector('h3')?.textContent || 'Project';
-        alert(`You clicked on ${projectName}`);
-      }
+      // Do nothing on tap/click in mobile as per instructions
+      // Removed the alert or any other click interaction
     }
   }, { passive: true });
 
-  // Accessibility: press Enter on card
+  // Accessibility: press Enter on card (only on desktop)
   carouselCards.forEach((card, index) => {
     card.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && !isMobileDevice()) {
         const projectName = card.querySelector('h3')?.textContent || 'Project';
         alert(`You clicked on ${projectName}`);
       }
