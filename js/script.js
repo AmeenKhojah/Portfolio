@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const navLinks = document.querySelector('.nav-links');
   const menuIcon = document.querySelector('.menu-icon');
 
+  // Toggle nav on hamburger click
   if (menuIcon) {
     menuIcon.addEventListener('click', () => {
       navLinks.classList.toggle('active');
@@ -18,8 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.querySelectorAll('.nav-links li a').forEach(item => {
-    item.addEventListener('click', () => {
+  // Close mobile nav on link click
+  document.querySelectorAll('.nav-links li a').forEach(link => {
+    link.addEventListener('click', () => {
       navLinks.classList.remove('active');
       if (menuIcon) menuIcon.classList.remove('active');
       menuToggle.checked = false;
@@ -31,49 +33,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const carouselCards = document.querySelectorAll('.carousel-card');
   const instruction = document.getElementById('carousel-instruction');
 
+  // If no carousel or no cards, do nothing
   if (!carousel || carouselCards.length === 0) return;
 
   const totalCards = carouselCards.length;
   const angleBetweenCards = 360 / totalCards;
 
-  // Start with no rotation offset
+  // Start with no offset rotation
   let rotationAngle = 0;
   let selectedIndex = 0;
 
+  // (A) Position the cards based on rotationAngle
   function positionCards() {
     carouselCards.forEach((card, i) => {
-      const cardAngle = i * angleBetweenCards + rotationAngle;
+      let cardAngle = i * angleBetweenCards + rotationAngle;
+
+      // On iPhone/small devices => smaller circle
       if (window.innerWidth <= 576) {
-        // Smaller phones => smaller translateZ & rely on left:50%
-        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(200px)`;
+        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(150px)`;
       } else {
-        // Larger screens => bigger circle
         card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
       }
     });
   }
 
+  // (B) Determine which card is front (best angle) => highlight
   function updateSelectedIndex() {
     let minDiff = Infinity;
-    let bestIndex = 0;
-    carouselCards.forEach((_, i) => {
+    let best = 0;
+
+    for (let i = 0; i < totalCards; i++) {
       let cardAngle = (i * angleBetweenCards + rotationAngle) % 360;
       if (cardAngle < 0) cardAngle += 360;
-      const diff = Math.min(Math.abs(cardAngle), 360 - Math.abs(cardAngle));
+      // diff from 0 => front facing
+      let diff = Math.min(Math.abs(cardAngle), 360 - Math.abs(cardAngle));
       if (diff < minDiff) {
         minDiff = diff;
-        bestIndex = i;
+        best = i;
       }
-    });
-    selectedIndex = bestIndex;
+    }
+    selectedIndex = best;
   }
 
+  // (C) Mark the selected card visually
   function highlightSelectedCard() {
     carouselCards.forEach((card, i) => {
       card.classList.toggle('selected', i === selectedIndex);
     });
   }
 
+  // (D) Hide instructions once user interacts
   function hideInstruction() {
     if (instruction && !instruction.classList.contains('fade-out')) {
       instruction.classList.add('fade-out');
@@ -83,11 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial
+  // Initial setup
   positionCards();
   updateSelectedIndex();
   highlightSelectedCard();
 
+  // Utility to spin forward/back
   function spinForward() {
     rotationAngle -= angleBetweenCards;
     positionCards();
@@ -103,116 +113,117 @@ document.addEventListener('DOMContentLoaded', () => {
     hideInstruction();
   }
 
-  // Keyboard control
+  // KEYBOARD
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') {
       spinForward();
     } else if (e.key === 'ArrowLeft') {
       spinBackward();
     } else if (e.key === 'Enter') {
-      const activeCard = carouselCards[selectedIndex];
-      if (activeCard) {
+      const card = carouselCards[selectedIndex];
+      if (card) {
         alert(`Opening details for: ${
-          activeCard.querySelector('h3')?.textContent || 'Project'
+          card.querySelector('h3')?.textContent || 'Project'
         }`);
       }
     }
   });
 
-  // Distinguish small click vs drag
+  // (E) Drag logic for PC from anywhere on the card
   let isDragging = false;
   let startX = 0;
   let startY = 0;
-  let dragDistanceX = 0;
-  let dragDistanceY = 0;
-  const DRAG_THRESHOLD = 30; // smaller => easier to spin
+  let dragX = 0;
+  let dragY = 0;
+  const DRAG_THRESHOLD = 25; // small => easier to spin vs. click
 
-  // Attach MOUSE listeners to each card => so we can drag from anywhere
-  carouselCards.forEach((card) => {
-    card.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      dragDistanceX = 0;
-      dragDistanceY = 0;
-      hideInstruction();
-    });
+  // Attach MOUSE events to entire .carousel so user can drag from anywhere
+  carousel.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    dragX = 0;
+    dragY = 0;
+    hideInstruction();
   });
 
-  // Keep tracking on mousemove over the entire .carousel (so we don't lose events)
   carousel.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-    dragDistanceX = e.clientX - startX;
-    dragDistanceY = e.clientY - startY;
+    dragX = e.clientX - startX;
+    dragY = e.clientY - startY;
   });
 
   carousel.addEventListener('mouseup', (e) => {
     if (!isDragging) return;
     isDragging = false;
 
+    // Distinguish spin vs. click
     if (
-      Math.abs(dragDistanceX) > DRAG_THRESHOLD &&
-      Math.abs(dragDistanceX) > Math.abs(dragDistanceY)
+      Math.abs(dragX) > DRAG_THRESHOLD &&
+      Math.abs(dragX) > Math.abs(dragY)
     ) {
-      // horizontal drag => spin
-      if (dragDistanceX < 0) spinForward();
+      if (dragX < 0) spinForward();
       else spinBackward();
     } else {
-      // treat as click if target is a card
+      // It's a click => see if user clicked on a card
       const target = e.target;
-      if (
-        target.classList.contains('carousel-card') ||
-        target.closest('.carousel-card')
-      ) {
-        const activeCard = carouselCards[selectedIndex];
-        if (activeCard) {
+      if (target.classList.contains('carousel-card') ||
+          target.closest('.carousel-card')) {
+        const card = carouselCards[selectedIndex];
+        if (card) {
           alert(`Opening details for: ${
-            activeCard.querySelector('h3')?.textContent || 'Project'
+            card.querySelector('h3')?.textContent || 'Project'
           }`);
         }
       }
     }
   });
 
+  // If mouse leaves => no drag
   carousel.addEventListener('mouseleave', () => {
     isDragging = false;
   });
 
-  // TOUCH events
-  carouselCards.forEach((card) => {
-    card.addEventListener('touchstart', (e) => {
-      if (e.touches.length > 1) return; // ignore pinch
-      isDragging = true;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      dragDistanceX = 0;
-      dragDistanceY = 0;
-      hideInstruction();
-    }, { passive: true });
-  });
+  // (F) Touch logic (mobile)
+  let touchDragging = false;
+  let startTouchX = 0;
+  let startTouchY = 0;
+  let distX = 0;
+  let distY = 0;
+
+  carousel.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) return; // ignore multi-touch
+    touchDragging = true;
+    startTouchX = e.touches[0].clientX;
+    startTouchY = e.touches[0].clientY;
+    distX = 0;
+    distY = 0;
+    hideInstruction();
+  }, { passive: true });
 
   carousel.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    dragDistanceX = e.touches[0].clientX - startX;
-    dragDistanceY = e.touches[0].clientY - startY;
-    // if vertical is bigger => let user scroll
-    if (Math.abs(dragDistanceY) > Math.abs(dragDistanceX)) {
+    if (!touchDragging) return;
+    distX = e.touches[0].clientX - startTouchX;
+    distY = e.touches[0].clientY - startTouchY;
+
+    if (Math.abs(distY) > Math.abs(distX)) {
+      // vertical => let page scroll
       return;
     } else {
-      e.preventDefault();
+      e.preventDefault(); // horizontal => spin
     }
   }, { passive: false });
 
   carousel.addEventListener('touchend', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
+    if (!touchDragging) return;
+    touchDragging = false;
 
     if (
-      Math.abs(dragDistanceX) > DRAG_THRESHOLD &&
-      Math.abs(dragDistanceX) > Math.abs(dragDistanceY)
+      Math.abs(distX) > DRAG_THRESHOLD &&
+      Math.abs(distX) > Math.abs(distY)
     ) {
-      if (dragDistanceX < 0) spinForward();
+      if (distX < 0) spinForward();
       else spinBackward();
     } else {
       // treat as click
@@ -222,17 +233,17 @@ document.addEventListener('DOMContentLoaded', () => {
         elem.classList.contains('carousel-card') ||
         elem.closest('.carousel-card')
       )) {
-        const activeCard = carouselCards[selectedIndex];
-        if (activeCard) {
+        const card = carouselCards[selectedIndex];
+        if (card) {
           alert(`Opening details for: ${
-            activeCard.querySelector('h3')?.textContent || 'Project'
+            card.querySelector('h3')?.textContent || 'Project'
           }`);
         }
       }
     }
   }, { passive: true });
 
-  // Accessibility: press Enter on a card
+  // ACCESSIBILITY: press Enter on a card
   carouselCards.forEach((card) => {
     card.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -243,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Reposition on resize/orientation => plus recalc selection
+  // (G) Reposition on orientation/resize => immediate effect
   window.addEventListener('resize', () => {
     positionCards();
     updateSelectedIndex();
