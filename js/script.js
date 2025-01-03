@@ -1,270 +1,589 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // 1) Dynamic Year in the Footer
-  const yearSpan = document.getElementById('year');
-  if (yearSpan) {
-    yearSpan.textContent = new Date().getFullYear();
+/* ======================================
+   RESET & BASE STYLES
+====================================== */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  scroll-behavior: smooth;
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 0;
+}
+
+/* ======================================
+   HEADER (NAV)
+====================================== */
+.main-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  padding: 0 1.5rem;
+}
+
+.nav-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Desktop nav links */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  transition: right 0.3s ease;
+}
+.nav-links li a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.nav-links li a:hover {
+  background: linear-gradient(135deg, #B030B0, #E060C0);
+  color: #fff;
+}
+
+/* Mobile nav toggle */
+#menu-toggle {
+  display: none;
+}
+.menu-icon {
+  display: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #fff;
+  margin-left: auto;
+}
+
+/* Mobile nav styling */
+@media (max-width: 768px) {
+  .menu-icon {
+    display: block;
   }
-
-  // 2) Mobile Nav Toggle
-  const menuToggle = document.getElementById('menu-toggle');
-  const navLinks = document.querySelector('.nav-links');
-  const menuIcon = document.querySelector('.menu-icon');
-
-  // Clicking hamburger toggles the nav
-  if (menuIcon) {
-    menuIcon.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
-      menuIcon.classList.toggle('active');
-      menuToggle.checked = !menuToggle.checked;
-    });
+  .nav-links {
+    position: fixed;
+    top: 60px;
+    right: -100%;
+    flex-direction: column;
+    align-items: center;
+    width: 220px;
+    height: calc(100% - 60px);
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+    padding-top: 20px;
   }
-
-  // Close mobile nav if a link is clicked
-  document.querySelectorAll('.nav-links li a').forEach(link => {
-    link.addEventListener('click', () => {
-      navLinks.classList.remove('active');
-      if (menuIcon) menuIcon.classList.remove('active');
-      menuToggle.checked = false;
-    });
-  });
-
-  // 3) Carousel
-  const carousel = document.querySelector('.carousel');
-  const carouselCards = document.querySelectorAll('.carousel-card');
-  const instruction = document.getElementById('carousel-instruction');
-  const messageOverlay = document.getElementById('message-overlay'); // New element
-  if (!carousel || carouselCards.length === 0) return;
-
-  const totalCards = carouselCards.length;
-  const angleBetweenCards = 360 / totalCards;
-
-  let rotationAngle = 0;
-  let selectedIndex = 0;
-
-  // Flag to determine if the touch gesture is a scroll
-  let isScrolling = false;
-
-  // =========== Position Cards ===========
-  function positionCards() {
-    carouselCards.forEach((card, i) => {
-      let cardAngle = i * angleBetweenCards + rotationAngle;
-
-      // For smaller screens => smaller circle
-      if (window.innerWidth <= 576) {
-        // Tweak 'translateZ(...)' to control circle radius on mobile
-        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(150px)`;
-      } else {
-        card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
-      }
-    });
+  .nav-links.active {
+    right: 0;
   }
-
-  // =========== Update Selected Card ===========
-  function updateSelectedIndex() {
-    let minDiff = 999999;
-    let bestIndex_ = 0;
-
-    carouselCards.forEach((_, i) => {
-      let rawAngle = i * angleBetweenCards + rotationAngle;
-      let cardAngle = ((rawAngle % 360) + 360) % 360; // normalized 0..360
-      let diff = Math.min(Math.abs(cardAngle), 360 - Math.abs(cardAngle));
-      if (diff < minDiff) {
-        minDiff = diff;
-        bestIndex_ = i;
-      }
-    });
-    selectedIndex = bestIndex_;
+  .nav-links li {
+    margin-bottom: 20px;
   }
+}
 
-  function highlightSelectedCard() {
-    carouselCards.forEach((card, i) => {
-      card.classList.toggle('selected', i === selectedIndex);
-    });
+/* ======================================
+   HERO SECTION
+====================================== */
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 120vh;
+  background-color: #000;
+  display: block;
+  padding-top: 60px; /* account for fixed header */
+  overflow: hidden;
+}
+
+.hero-overlay {
+  width: 100%;
+  height: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Robot to the right on larger screens */
+#canvas3d {
+  width: 600px;
+  height: 600px;
+  background-color: #000;
+  transform: translate(400px, -250px);
+}
+
+.hero-absolute-text {
+  position: absolute;
+  top: 300px;
+  left: 80px;
+  z-index: 9999;
+  color: #fff;
+  text-align: left;
+}
+
+.hero-title {
+  font-size: 2.2rem;
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+}
+
+.hero-desc {
+  font-size: 1rem;
+  max-width: 500px;
+  margin: 0 0 20px 0;
+  line-height: 1.6;
+}
+
+/* CTA container (button + socials) */
+.cta-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+/* CTA button */
+.cta-button {
+  display: inline-block;
+  padding: 12px 30px;
+  font-size: 1rem;
+  color: #fff;
+  background: linear-gradient(135deg, #C850C0, #FF77A9);
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.5s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  vertical-align: middle;
+  margin-top: 50px;
+}
+.cta-button:hover {
+  background: linear-gradient(135deg, #B030B0, #E060C0);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+}
+.cta-button::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.2),
+    rgba(255,255,255,0)
+  );
+  transform: translateX(-50%);
+  filter: blur(8px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Social icons container */
+.hero-socials-container {
+  position: absolute;
+  top: 115px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.hero-social-links {
+  display: inline-flex;
+  gap: 10px;
+}
+
+.hero-social-links a img {
+  width: 32px;
+  height: 32px;
+  transition: filter 0.3s ease;
+}
+.hero-social-links a img:hover {
+  filter: brightness(0.7);
+}
+
+/* Adjust hero on smaller screens */
+@media (max-width: 992px) {
+  .hero-section {
+    min-height: auto;
   }
-
-  function hideInstruction() {
-    if (instruction && !instruction.classList.contains('fade-out')) {
-      instruction.classList.add('fade-out');
-      setTimeout(() => {
-        instruction.style.visibility = 'hidden';
-      }, 1000);
-    }
+  #canvas3d {
+    width: 100%;
+    height: 400px;
+    transform: translate(0, 0);
   }
-
-  function showMessage(message) {
-    if (!messageOverlay) return;
-    messageOverlay.textContent = message;
-    messageOverlay.classList.add('show');
-    setTimeout(() => {
-      messageOverlay.classList.remove('show');
-    }, 2000); // Message disappears after 2 seconds
+  .hero-absolute-text {
+    position: relative;
+    margin: 20px;
+    text-align: center;
+    top: 0;
+    left: 0;
   }
-
-  // Initial
-  positionCards();
-  updateSelectedIndex();
-  highlightSelectedCard();
-
-  function spinForward() {
-    rotationAngle -= angleBetweenCards;
-    positionCards();
-    updateSelectedIndex();
-    highlightSelectedCard();
-    hideInstruction();
+  .hero-title {
+    font-size: 1.8rem;
   }
-  function spinBackward() {
-    rotationAngle += angleBetweenCards;
-    positionCards();
-    updateSelectedIndex();
-    highlightSelectedCard();
-    hideInstruction();
+  .hero-desc {
+    font-size: 0.95rem;
   }
+  .hero-socials-container {
+    position: relative;
+    top: 20px;
+    left: 0;
+    transform: none;
+    margin: 0 auto;
+  }
+}
 
-  // Keyboard controls
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight') {
-      spinForward();
-    } else if (e.key === 'ArrowLeft') {
-      spinBackward();
-    } else if (e.key === 'Enter') {
-      const activeCard = carouselCards[selectedIndex];
-      if (activeCard) {
-        const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on X (${projectName})`);
-      }
-    }
-  });
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 1.4rem;
+  }
+}
 
-  // MOUSE DRAG ON PC
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  let dragDistX = 0;
-  let dragDistY = 0;
-  const DRAG_THRESHOLD = 25;
+@media (max-width: 576px) {
+  .hero-title {
+    font-size: 1.2rem;
+  }
+  .hero-desc {
+    font-size: 0.85rem;
+  }
+}
 
-  // We attach pointer events to the entire carousel so you can drag from ANY part of each card
-  carousel.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    dragDistX = 0;
-    dragDistY = 0;
-    hideInstruction();
-  });
+/* ======================================
+   GRADIENT TRANSITION
+====================================== */
+.gradient-transition {
+  width: 100%;
+  height: 300px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(34, 34, 34, 1) 20%,
+    rgba(102, 102, 102, 0.7) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transition: background 1s ease-in-out;
+}
 
-  carousel.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    dragDistX = e.clientX - startX;
-    dragDistY = e.clientY - startY;
-  });
+/* ======================================
+   CV / TIMELINE
+====================================== */
+.cv-section {
+  background-color: #fff;
+  color: #000;
+  padding: 80px 20px 60px;
+  text-align: center;
+}
+.section-heading {
+  font-size: 2.4rem;
+  margin-bottom: 40px;
+  color: #000;
+}
+.cv-container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.fancy-timeline {
+  position: relative;
+  padding: 0 0 60px;
+}
+.fancy-timeline::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  width: 3px;
+  background: #000;
+  transform: translateX(-50%);
+}
+.fancy-timeline-block {
+  position: relative;
+  width: 50%;
+  margin-bottom: 60px;
+}
+.fancy-timeline-block.left {
+  float: left;
+  text-align: right;
+}
+.fancy-timeline-block.right {
+  float: right;
+  text-align: left;
+}
+.fancy-timeline-icon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px; height: 24px;
+  background: #000;
+  border-radius: 50%;
+  z-index: 2;
+}
+.fancy-timeline-content {
+  background: #f8f8f8;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  display: inline-block;
+  max-width: 80%;
+  position: relative;
+}
+.fancy-timeline-content::before {
+  content: '';
+  position: absolute;
+  top: 20px; width: 0; height: 0;
+  border: 8px solid transparent;
+}
+.fancy-timeline-block.left .fancy-timeline-content::before {
+  right: -16px;
+  border-left-color: #f8f8f8;
+}
+.fancy-timeline-block.right .fancy-timeline-content::before {
+  left: -16px;
+  border-right-color: #f8f8f8;
+}
+.cv-date {
+  font-size: 0.85rem;
+  color: #999;
+  margin-bottom: 8px;
+}
+.fancy-timeline-content h4 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #000;
+}
+.fancy-timeline-content p {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
 
-  carousel.addEventListener('mouseup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
+/* CV Download button */
+.cv-download {
+  clear: both;
+  margin-top: 40px;
+  text-align: center;
+}
+.btn.btn-primary {
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 0.8rem 1.5rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.btn.btn-primary:hover {
+  background: #fff;
+  color: #000;
+  outline: none;
+}
+.fancy-timeline-block::after,
+.fancy-timeline::after {
+  content: '';
+  display: block;
+  clear: both;
+}
 
-    if (
-      Math.abs(dragDistX) > DRAG_THRESHOLD &&
-      Math.abs(dragDistX) > Math.abs(dragDistY)
-    ) {
-      // spin horizontally
-      if (dragDistX < 0) spinForward();
-      else spinBackward();
-    } else {
-      // treat as click
-      const elem = e.target;
-      const card = elem.closest('.carousel-card');
-      if (card) {
-        const projectName = card.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on X (${projectName})`);
-      }
-    }
-  });
+/* ======================================
+   PROJECTS SECTION (CAROUSEL)
+====================================== */
+.projects-section {
+  background-color: #fff;
+  color: #000;
+  padding: 80px 20px;
+  text-align: center;
+  min-height: 110vh;
+}
+.projects-section h2 {
+  font-size: 2.4rem;
+  margin-bottom: 40px;
+  color: #000;
+}
+.carousel-instruction {
+  color: #000;
+  margin-bottom: 1rem;
+  transition: opacity 1s ease-out;
+}
+.carousel-instruction.fade-out {
+  opacity: 0;
+}
 
-  carousel.addEventListener('mouseleave', () => {
-    isDragging = false;
-  });
+.carousel-wrapper {
+  /* On larger screens => bigger perspective so user sees side cards */
+  perspective: 1200px;
+  margin: 20px auto;
+  width: 100%;
+  max-width: 700px;
+  height: 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: visible;
+  cursor: grab;
+}
+.carousel-wrapper:active {
+  cursor: grabbing;
+}
 
-  // MOBILE TOUCH DRAG
-  let isTouchDragging = false;
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let diffX = 0;
-  let diffY = 0;
+.carousel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 1s ease;
+}
 
-  carousel.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 1) return; // ignore multi-touch
-    isTouchDragging = true;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    diffX = 0;
-    diffY = 0;
-    isScrolling = false; // Reset scrolling flag on new touch
-    hideInstruction();
-  }, { passive: true });
+/* Each card => entire area is draggable/clickable */
+.carousel-card {
+  position: absolute;
+  top: 50%;
+  left: 33%;
+  width: 200px;
+  height: 220px;
+  background: #f9f9f9;
+  border-left: 4px solid #000;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 1rem;
+  text-align: center;
+  transform-style: preserve-3d;
+  transition: transform 1s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  color: #000;
+  cursor: grab;
+  /* So text doesn't overflow outside the card */
+  overflow-wrap: break-word;
+}
+.carousel-card:active {
+  cursor: grabbing;
+}
+.carousel-card.selected {
+  box-shadow: 0 8px 20px rgba(200, 80, 192, 0.5);
+}
+.carousel-card img.project-img {
+  width: 100%;
+  height: auto;
+  max-height: 100px;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+.carousel-card h3 {
+  margin-bottom: 0.4rem;
+  font-size: 1.1rem;
+  color: #000;
+}
+.carousel-card p {
+  font-size: 0.9rem;
+  line-height: 1.3;
+  color: #444;
+  /* Keep text within the card */
+  overflow-wrap: break-word;
+}
 
-  carousel.addEventListener('touchmove', (e) => {
-    if (!isTouchDragging) return;
-    diffX = e.touches[0].clientX - touchStartX;
-    diffY = e.touches[0].clientY - touchStartY;
+/* On small devices => shrink everything so user can see the back cards */
+@media (max-width: 576px) {
+  .carousel-wrapper {
+    perspective: 700px;
+    height: 220px;
+  }
+  .carousel-card {
+    top: 50%;
+    left: 50% !important;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 140px;
+  }
+  .carousel-card img.project-img {
+    max-height: 50px;
+  }
+  .carousel-card h3 {
+    font-size: 0.9rem;
+  }
+  .carousel-card p {
+    font-size: 0.7rem;
+  }
+}
 
-    // If user moves vertically more => allow scroll
-    if (Math.abs(diffY) > Math.abs(diffX)) {
-      isScrolling = true;
-      return;
-    } else {
-      e.preventDefault(); // horizontal drag
-    }
-  }, { passive: false });
+/* ======================================
+   FOOTER
+====================================== */
+.main-footer {
+  background-color: #fff;
+  padding: 20px 0;
+  color: #666;
+  text-align: center;
+  border-top: 1px solid #ccc;
+}
+.main-footer p {
+  font-size: 0.9rem;
+  color: #666;
+}
+.below-contact-icons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+.below-contact-icons a img {
+  width: 28px;
+  height: 28px;
+  transition: filter 0.3s ease;
+}
+.below-contact-icons a img:hover {
+  filter: brightness(0.7);
+}
 
-  carousel.addEventListener('touchend', (e) => {
-    if (!isTouchDragging) return;
-    isTouchDragging = false;
+/* ======================================
+   RESPONSIVE
+====================================== */
+@media (max-width: 992px) {
+  .cv-container {
+    width: 95%;
+  }
+}
 
-    if (isScrolling) {
-      // Do not treat as click if the gesture was a scroll
-      return;
-    }
-
-    if (
-      Math.abs(diffX) > DRAG_THRESHOLD &&
-      Math.abs(diffX) > Math.abs(diffY)
-    ) {
-      if (diffX < 0) spinForward();
-      else spinBackward();
-    } else {
-      // treat as click
-      const touch = e.changedTouches[0];
-      const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-      const card = elem.closest('.carousel-card');
-      if (card) {
-        const projectName = card.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on X (${projectName})`);
-      }
-    }
-  }, { passive: true });
-
-  // Accessibility: press Enter on card
-  carouselCards.forEach((card) => {
-    card.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        const projectName = card.querySelector('h3')?.textContent || 'Project';
-        showMessage(`You clicked on X (${projectName})`);
-      }
-    });
-
-    // Attach Click Event Listener to Each Card
-    card.addEventListener('click', () => {
-      const projectName = card.querySelector('h3')?.textContent || 'Project';
-      showMessage(`You clicked on X (${projectName})`);
-    });
-  });
-
-  // Reposition on orientation/resize => immediate effect
-  window.addEventListener('resize', () => {
-    positionCards();
-    updateSelectedIndex();
-    highlightSelectedCard();
-  });
-});
+/* For timeline layout & project cards on very small screens */
+@media (max-width: 576px) {
+  .fancy-timeline-block {
+    width: 100%;
+    margin-bottom: 40px;
+    float: none;
+    text-align: left;
+  }
+  .fancy-timeline-block.left .fancy-timeline-content::before,
+  .fancy-timeline-block.right .fancy-timeline-content::before {
+    left: -16px;
+    border-right-color: #f8f8f8;
+    right: auto;
+  }
+}
