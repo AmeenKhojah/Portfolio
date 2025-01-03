@@ -7,25 +7,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 2. Hamburger Menu Toggle
-  const menuToggle = document.querySelector('.menu-icon');
+  const menuToggle = document.getElementById('menu-toggle');
   const navLinks = document.querySelector('.nav-links');
 
   if (menuToggle) {
-    menuToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
-      menuToggle.classList.toggle('active');
+    menuToggle.addEventListener('change', () => {
+      navLinks.classList.toggle('active', menuToggle.checked);
     });
   }
 
   // Close mobile menu on nav item click
   document.querySelectorAll('.nav-links li a').forEach(item => {
     item.addEventListener('click', () => {
-      navLinks.classList.remove('active');
-      if (menuToggle) menuToggle.classList.remove('active');
+      if (menuToggle.checked) {
+        menuToggle.checked = false;
+        navLinks.classList.remove('active');
+      }
     });
   });
 
-  // 3. Carousel
+  // 3. Carousel Functionality
   const carousel = document.querySelector('.carousel');
   const carouselCards = document.querySelectorAll('.carousel-card');
   const instruction = document.getElementById('carousel-instruction');
@@ -49,9 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Adjust transform based on screen width
       if (window.innerWidth <= 576) {
-        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(200px)`;
+        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(150px)`;
       } else {
-        card.style.transform = `rotateY(${cardAngle}deg) translateZ(300px)`;
+        card.style.transform = `translate(-50%, -50%) rotateY(${cardAngle}deg) translateZ(300px)`;
       }
     });
   }
@@ -62,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     carouselCards.forEach((card, i) => {
       let cardAngle = (i * angleBetweenCards + rotationAngle) % 360;
       if (cardAngle < 0) cardAngle += 360;
-      const diff = Math.abs(cardAngle - 0); // Difference from front (0deg)
+      const diff = Math.min(Math.abs(cardAngle), 360 - Math.abs(cardAngle));
       if (diff < minDiff) {
         minDiff = diff;
         bestIndex = i;
@@ -122,14 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Dragging
+  // Dragging Functionality
   let isDragging = false;
   let startX = 0;
   let startY = 0;
   let dragDistanceX = 0;
   let dragDistanceY = 0;
 
-  // MOUSE events (desktop)
+  // Mouse Events (Desktop)
   carousel.addEventListener('mousedown', (e) => {
     e.preventDefault();
     isDragging = true;
@@ -142,13 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   carousel.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-    e.preventDefault();
     dragDistanceX = e.clientX - startX;
     dragDistanceY = e.clientY - startY;
   });
 
   carousel.addEventListener('mouseup', (e) => {
-    e.preventDefault();
     if (!isDragging) return;
     isDragging = false;
 
@@ -181,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isDragging = false;
   });
 
-  // TOUCH events (mobile)
+  // Touch Events (Mobile)
   let isTouching = false;
 
   carousel.addEventListener('touchstart', (e) => {
@@ -207,7 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { passive: false });
 
   carousel.addEventListener('touchend', (e) => {
+    if (!isTouching) return;
     isTouching = false;
+
     const threshold = 50;
     if (Math.abs(dragDistanceX) > threshold && 
         Math.abs(dragDistanceX) > Math.abs(dragDistanceY)) {
