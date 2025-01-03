@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const carousel = document.querySelector('.carousel');
   const carouselCards = document.querySelectorAll('.carousel-card');
   const instruction = document.getElementById('carousel-instruction');
+  const messageOverlay = document.getElementById('message-overlay'); // New element
   if (!carousel || carouselCards.length === 0) return;
 
   const totalCards = carouselCards.length;
@@ -90,6 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function showMessage(message) {
+    if (!messageOverlay) return;
+    messageOverlay.textContent = message;
+    messageOverlay.classList.add('show');
+    setTimeout(() => {
+      messageOverlay.classList.remove('show');
+    }, 2000); // Message disappears after 2 seconds
+  }
+
   // Initial
   positionCards();
   updateSelectedIndex();
@@ -120,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const activeCard = carouselCards[selectedIndex];
       if (activeCard) {
         const projectName = activeCard.querySelector('h3')?.textContent || 'Project';
-        alert(`You clicked on X (${projectName})`);
+        showMessage(`You clicked on X (${projectName})`);
       }
     }
   });
@@ -164,13 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       // treat as click
       const elem = e.target;
-      if (elem.classList.contains('carousel-card') ||
-          elem.closest('.carousel-card')) {
-        const card = carouselCards[selectedIndex];
-        if (card) {
-          const projectName = card.querySelector('h3')?.textContent || 'Project';
-          alert(`You clicked on X (${projectName})`);
-        }
+      const card = elem.closest('.carousel-card');
+      if (card) {
+        const projectName = card.querySelector('h3')?.textContent || 'Project';
+        showMessage(`You clicked on X (${projectName})`);
       }
     }
   });
@@ -230,15 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // treat as click
       const touch = e.changedTouches[0];
       const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (elem && (
-        elem.classList.contains('carousel-card') ||
-        elem.closest('.carousel-card')
-      )) {
-        const card = carouselCards[selectedIndex];
-        if (card) {
-          const projectName = card.querySelector('h3')?.textContent || 'Project';
-          alert(`You clicked on X (${projectName})`);
-        }
+      const card = elem.closest('.carousel-card');
+      if (card) {
+        const projectName = card.querySelector('h3')?.textContent || 'Project';
+        showMessage(`You clicked on X (${projectName})`);
       }
     }
   }, { passive: true });
@@ -248,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const projectName = card.querySelector('h3')?.textContent || 'Project';
-        alert(`You clicked on X (${projectName})`);
+        showMessage(`You clicked on X (${projectName})`);
       }
     });
   });
